@@ -2,7 +2,6 @@ import socket
 from _thread import *
 import pickle
 
-print("Hello")
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.bind((socket.gethostname(),7734))
 s.listen(5)
