@@ -13,8 +13,28 @@ activePeer = {} # Key: host name and Value: port used for connection to server
 
 def manageClientRequest(clientsocket,address):
     global activePeer, rfcMapping
-    dataFromClient = pickle.loads(clientsocket.recv(1024))
+    info = clientsocket.recv(1024)
+    dataFromClient = pickle.loads(info)
     print(dataFromClient)
+
+    # Need to write code for the mappings 
+
+
+    while True:
+        if dataFromClient[0] == 'A':
+            # list of incoming file
+            res = dataFromClient.split("\n")
+            # 'ADD RFC 3 P2P-CI/1.0', 'HOST: 127.0.0.1', 'Port: 24520', 'Title: rfc0005'
+            textNeeded = res[0][8] + " " + res[3][7:] + " " + res[1][6:] + " " + res[2][6:]
+            print(textNeeded)
+            #3 RFC003 127.0.0.2 60234
+            break
+
+        elif dataFromClient[0] == 'E':
+            break
+
+    print("Closing connection with the client")
+    clientsocket.close()
 
 while True:
     clientsocket, address = s.accept()
