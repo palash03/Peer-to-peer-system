@@ -1,6 +1,8 @@
 import socket
 from _thread import *
 import pickle
+import platform
+import time
 
 def delAllMapping(hname):
     global rfcMapping, activePeer
@@ -20,19 +22,38 @@ def getResponseAdd(number,title,hname,port):
 
 def getResponseLookup(number,title):
     global rfcMapping, activePeer
+    print("Inside lookup response")
+    print(rfcMapping)
     response = ""
-    if rfcMapping[number]:
+    if number in rfcMapping:
         hosts, rfcTitle = rfcMapping[number]
-        if len(hosts) > 1:
+        if len(hosts) > 0:
             response += "P2P-CI/1.0 200 OK"
             for h in hosts:
                 getHostInfo = str(number) + " " + title + " " + str(h) + " " + str(activePeer.get(h))
                 response += "\n" + getHostInfo
-        else:
-            response = "No peer has this RFC"
+        #else:
+            #response = "No peer has this RFC"
     else:
         response = "P2P-CI/1.0 404 Not Found"
     return response
+
+def getResponseGet(number,title,check):
+    sendResponse = []
+    # case when rfc is present with the peer
+    if check:
+        hosts,rfcTitle = rfcMapping.get(number)
+        sendResponse.append(hosts[0])
+        sendResponse.append(activePeer[hosts[0]])
+    else:
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print(current_time)
+        msg = "P2P-CI/1.0 404 Not Found\n"\
+              "Date: " + str(current_time) + "\n"\
+              "OS: " + str(platform.platform()) + "\n"
+        sendResponse.append(msg)
+    return sendResponse
 
 def createMapping(number,title,hname):
     global rfcMapping, activePeer
@@ -50,9 +71,9 @@ def manageClientRequest(clientsocket,address):
     dataFromClient = pickle.loads(info)
     hname = dataFromClient[0]
     port = dataFromClient[1]
-    activePeer[hname] = port
     print("The info list of peer for the client")    
     # Code for the mappings 
+    activePeer[hname] = port
     for key,value in dataFromClient[2].items():
         if key not in rfcMapping:
             peer = [hname]
@@ -77,7 +98,6 @@ def manageClientRequest(clientsocket,address):
             rfcHost = res[1][6:]
             #rfcPort = res[2][6:]
             createMapping(rfcNo,rfcTitle,rfcHost)
-            print("ahsoakdnksandlkasn")
             print(rfcMapping)
             # P2P-CI/1.0 200 OK\n1 RFC001 127.0.0.2 61405
             sendResponse = getResponseAdd(res[0][8],res[3][7:],res[1][6:],res[2][6:])
@@ -95,6 +115,21 @@ def manageClientRequest(clientsocket,address):
             msg = getResponseLookup(rfcNo,rfcTitle)
             print(msg)
             clientsocket.send(bytes(msg,'utf-8'))
+        
+        # case GET
+        elif response2[0] == 'G':
+            res = response2.split("\n")
+            print("Inside GET")
+            print(res)
+            rfcNo = res[1]
+            rfcTitle = res[4]
+            peerHasRfc = False
+            if rfcNo in rfcMapping:
+                peerHasRfc = True
+            msg = getResponseGet(rfcNo,rfcTitle,peerHasRfc)
+            msgList = pickle.dumps(msg,-1)
+            clientsocket.send(msgList)
+
         # case EXIT
         elif response2[0] == 'E':
             break

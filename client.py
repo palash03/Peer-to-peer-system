@@ -1,5 +1,6 @@
 import socket
 import os
+import sys
 from _thread import *
 import pickle
 import random
@@ -24,6 +25,11 @@ def performAdd(clienthost,clientport,number,title):
            "HOST: " + str(clienthost) + "\n"\
            "Port: " + str(clientport) + "\n"\
            "Title: " + str(title)
+
+def transferFile(request):
+    hname = request[0]
+    port = request[1]
+    
 
 def performLookup(host,port,number,title):
     return "LOOKUP " + str(number) + " P2P-CI/1.0" + "\n"\
@@ -53,6 +59,22 @@ def getUserInput(s,clienthost,clientport):
             print("404 Error: File not found")
         getUserInput(s,clienthost,clientport)
     
+    elif inp == "GET":
+        print("Enter RFC number: ")
+        rfcNum = input()
+        print("Enter RFC Title: ")
+        rfcTitle = input()
+        request = "GET\n" + str(rfcNum) + "\n" + str(clienthost) + "\n" + str(clientport) + "\n" + str(rfcTitle)
+        s.send(bytes(request,'utf-8')) 
+        res = s.recv(1024)
+        resList = pickle.loads(res)
+        print(resList)
+        if len(resList) > 1:
+            transferFile(resList)
+        else:
+            print(resList)
+        getUserInput(s,clienthost,clientport)
+        
     elif inp == "LOOKUP":
         print("Enter RFC number: ")
         rfcNum = input()
@@ -76,16 +98,18 @@ def main():
 
     peerRfc = {} # The peers who have the RFC. Key: RFC number, Value: the list of peers having the RFC
 
-    clienthost = '127.0.0.1'
+    #clienthost = '127.0.0.1'
+    clienthost = sys.argv[1]
     clientport = 20000 + random.randint(1,8000)
 
     # RFC directory create ADD request for new peer
     currdir = os.listdir(os.getcwd()+'/RFC')
-    for rfc in currdir:
+    """for rfc in currdir:
         if rfc.startswith('.'):
             continue
         file = rfc.split('-')
         peerRfc[file[0]] = str(file[1])
+    """
     print(peerRfc)
     details = ""
     for key,value in peerRfc.items():
