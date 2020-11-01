@@ -164,7 +164,7 @@ def main():
 
     #clienthost = '127.0.0.1'
     clienthost = sys.argv[1]
-    clientport = 20000 + random.randint(1,8000)
+    clientport = 60000 + random.randint(1,1000)
     print(f"Client port {clientport}")
 
     # RFC directory create ADD request for new peer
