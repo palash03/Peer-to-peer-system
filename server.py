@@ -55,6 +55,20 @@ def getResponseGet(number,title,check):
         sendResponse.append(msg)
     return sendResponse
 
+def getAllMappings(hname,port):
+    global rfcMapping, activePeer
+    response = ""
+    if not rfcMapping:
+        response += "P2P-CI/1.0 404 Not found\n"
+    else:
+        response += "P2P-CI/1.0 200 OK"
+        for key,value in rfcMapping.items():
+            hosts, title = value
+            for host in hosts:
+                res = "RFC " + str(key) + " " + str(title) + " " + str(host) + " " + str(activePeer.get(host)) + "\n"
+                response += res    
+    return response
+
 def createMapping(number,title,hname):
     global rfcMapping, activePeer
     if number in rfcMapping:
@@ -106,7 +120,15 @@ def manageClientRequest(clientsocket,address):
 
         # case LIST
         elif response2[0] == 'L' and response2[1] == 'I':
-            break
+            res = response2.split("\n")
+            msg = ""
+            if "LIST ALL" in res[0]:
+                hostname = res[1][6:]
+                portNo = res[2][6:]
+                msg = getAllMappings(hostname,portNo)
+            else:
+                msg = "400 Bad Request\n"
+            clientsocket.send(bytes(msg,'utf-8'))
 
         elif response2[0] == 'L' and response2[1] == 'O':
             res = response2.split("\n")
