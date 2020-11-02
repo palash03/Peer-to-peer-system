@@ -151,6 +151,14 @@ def manageClientRequest(clientsocket,address):
             msg = getResponseGet(rfcNo,rfcTitle,peerHasRfc)
             msgList = pickle.dumps(msg,-1)
             clientsocket.send(msgList)
+            msg2 = clientsocket.recv(1024).decode('utf-8')
+            #print(msg2)
+            msg2List = msg2.split("\n")
+            print(msg2List)
+            if "GET Request Completed" in str(msg2List[0]):
+                createMapping(rfcNo,rfcTitle,str(msg2List[3][6:]))
+            print(rfcMapping)
+            #print(msg2)
 
         # case EXIT
         elif response2[0] == 'E':

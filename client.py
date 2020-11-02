@@ -136,6 +136,8 @@ def getUserInput(s,clienthost,clientport):
         resList = pickle.loads(res)
         if len(resList) > 1:
             transferFile(rfcNum,rfcTitle,resList)
+            sendInfoToServer = "GET Request Completed\n" + "RFC: " + str(rfcNum) + "\n" + "Title: " + str(rfcTitle) + "\n" + "Host: " + str(clienthost)
+            s.send(bytes(sendInfoToServer,'utf-8'))
         else:
             print(resList)
         getUserInput(s,clienthost,clientport)
