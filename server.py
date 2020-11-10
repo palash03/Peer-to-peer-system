@@ -22,7 +22,7 @@ def getResponseAdd(number,title,hname,port):
 
 def getResponseLookup(number,title):
     global rfcMapping, activePeer
-    print("Inside lookup response")
+    #print("Inside lookup response")
     print(rfcMapping)
     response = ""
     if number in rfcMapping:
@@ -61,12 +61,13 @@ def getAllMappings(hname,port):
     if not rfcMapping:
         response += "P2P-CI/1.0 404 Not found\n"
     else:
-        response += "P2P-CI/1.0 200 OK"
+        response += "P2P-CI/1.0 200 OK\n"
         for key,value in rfcMapping.items():
             hosts, title = value
             for host in hosts:
-                res = "RFC " + str(key) + " " + str(title) + " " + str(host) + " " + str(activePeer.get(host)) + "\n"
-                response += res    
+                if host:
+                    res = "RFC " + str(key) + " " + str(title) + " " + str(host) + " " + str(activePeer.get(host)) + "\n"
+                    response += res    
     return response
 
 def createMapping(number,title,hname):
@@ -85,7 +86,7 @@ def manageClientRequest(clientsocket,address):
     dataFromClient = pickle.loads(info)
     hname = dataFromClient[0]
     port = dataFromClient[1]
-    print("The info list of peer for the client")    
+    #print("The info list of peer for the client")    
     # Code for the mappings 
     activePeer[hname] = port
     for key,value in dataFromClient[2].items():
@@ -102,7 +103,7 @@ def manageClientRequest(clientsocket,address):
         print(response2)
         # case ADD
         if response2[0] == 'A':
-            print("Inside ADD")
+            #print("Inside ADD")
             # list of incoming file
             res = response2.split("\n")
             print(res)
@@ -112,7 +113,7 @@ def manageClientRequest(clientsocket,address):
             rfcHost = res[1][6:]
             #rfcPort = res[2][6:]
             createMapping(rfcNo,rfcTitle,rfcHost)
-            print(rfcMapping)
+            #print(rfcMapping)
             # P2P-CI/1.0 200 OK\n1 RFC001 127.0.0.2 61405
             sendResponse = getResponseAdd(res[0][8],res[3][7:],res[1][6:],res[2][6:])
             print(sendResponse)
@@ -141,7 +142,6 @@ def manageClientRequest(clientsocket,address):
         # case GET
         elif response2[0] == 'G':
             res = response2.split("\n")
-            print("Inside GET")
             print(res)
             rfcNo = res[1]
             rfcTitle = res[4]
@@ -157,7 +157,7 @@ def manageClientRequest(clientsocket,address):
             print(msg2List)
             if "GET Request Completed" in str(msg2List[0]):
                 createMapping(rfcNo,rfcTitle,str(msg2List[3][6:]))
-            print(rfcMapping)
+            #print(rfcMapping)
             #print(msg2)
 
         # case EXIT

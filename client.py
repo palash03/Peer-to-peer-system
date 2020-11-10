@@ -20,11 +20,11 @@ def upload(clienthost,clientport):
         # ['GET 1 P2P-CI/1.0\nHost: 127.0.0.1\nOS: macOS-10.15.7-x86_64-i386-64bit', 'rfc0001']
         reply = ""
         message = msg[0]
-        print("Entering transfer mode ....inside upload******")
+        #print("Entering transfer mode ....inside upload******")
         print(msg)
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
-        print("Testing 1")
+        #print("Testing 1")
         print(message)
         if "GET" in message and "Host" in message and "OS" in message:
             if "P2P-CI/1.0" not in message:
@@ -96,8 +96,8 @@ def getUserInput(s,clienthost,clientport):
         if os.path.isfile(fileSelect):
             data = performAdd(clienthost,clientport,rfcNum,rfcTitle)
             s.send(bytes(data,'utf-8'))
-            print("ADD response from server is: ")
-            receive = s.recv(1024)
+            #print("ADD response from server is: ")
+            receive = s.recv(1024).decode('utf-8')
             print(receive)
         else:
             print("404 Error: File not found")
@@ -106,11 +106,11 @@ def getUserInput(s,clienthost,clientport):
     elif inp == "LIST":
         res = "LIST ALL P2P-CI/1.0\n"\
               "Host: " + str(clienthost) + "\n"\
-              "Port: " + str(clientport)
+              "Port: " + str(clientport) + "\n"
         print(res)
         s.send(bytes(res,'utf-8'))
         getList = s.recv(4096)
-        print(getList)
+        print(getList.decode('utf-8'))
         getUserInput(s,clienthost,clientport)
 
     elif inp == "GET":
@@ -140,7 +140,7 @@ def getUserInput(s,clienthost,clientport):
         print(getRfcDetails)
         s.send(bytes(getRfcDetails,'utf-8'))
         response = s.recv(1024)
-        print(response)
+        print(response.decode('utf-8'))
         getUserInput(s,clienthost,clientport)
     
     elif inp == "EXIT":
