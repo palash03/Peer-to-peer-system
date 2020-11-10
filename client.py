@@ -14,7 +14,7 @@ def upload(clienthost,clientport):
     sock.listen(5)
     while True:
         downloadSocket,downloadAddr = sock.accept()
-        msgTransfer = downloadSocket.recv(307200)
+        msgTransfer = downloadSocket.recv(1048576)
         msg = pickle.loads(msgTransfer)
         print("Print the msg now....")
         # ['GET 1 P2P-CI/1.0\nHost: 127.0.0.1\nOS: macOS-10.15.7-x86_64-i386-64bit', 'rfc0001']
@@ -27,21 +27,16 @@ def upload(clienthost,clientport):
         print("Testing 1")
         print(message)
         if "GET" in message and "Host" in message and "OS" in message:
-            print("Testing 2")
             if "P2P-CI/1.0" not in message:
                 reply += "ERROR 505: P2P-CI/1.0 version not supported" 
             else:
-                #print("Testing 3")
                 breakContent = message.split("\n")
                 if "GET" in breakContent[0]:
                     rfcNo = breakContent[0][4]
                     filePath = os.getcwd() + '/RFC/' + str(rfcNo) + "-" + str(msg[1]) + ".txt"
-                    #fileOpen = open(filePath,'r')
-                    #fileContent = fileOpen.read()
                     fileContent = ""
                     with open(filePath,'r') as f:
                         fileContent = f.read()
-                    #fileOpen.close()
                     reply += "P2P-CI/1.0 200OK\n"\
                              "Date: " + str(current_time) + "\n"\
                              "OS: " + str(platform.platform()) + "\n"\
@@ -74,17 +69,13 @@ def transferFile(number, title, request):
     m = pickle.dumps(msgList,-1)
     s.send(m)
     print("********Getting data from the peer*********")
-    res = s.recv(307200)
-    # Creating directory to store the new file content
+    res = s.recv(1048576)
     if len(str(res)) > 0:
         directory = os.getcwd() + "/RFC/Downloaded" + str(number) + ".txt"
         with open(directory,'w') as f:
-            f.write(str(res))
+            f.write(str(res.decode('utf-8')))
         print("File is stored in the new directory now")
     print(res)
-    #responseFromPeer = pickle.loads(res)
-    #print("Gotcha")
-    #print(responseFromPeer)
 
 def performLookup(host,port,number,title):
     return "LOOKUP " + str(number) + " P2P-CI/1.0" + "\n"\
@@ -103,9 +94,7 @@ def getUserInput(s,clienthost,clientport):
         directory = os.getcwd() + '/RFC/'
         fileSelect = directory + str(rfcNum) + "-" + str(rfcTitle) + ".txt"
         if os.path.isfile(fileSelect):
-            data = performAdd(clienthost,clientport,rfcNum,rfcTitle) 
-            #print(data)
-            #info = pickle.dumps(bytes(data))
+            data = performAdd(clienthost,clientport,rfcNum,rfcTitle)
             s.send(bytes(data,'utf-8'))
             print("ADD response from server is: ")
             receive = s.recv(1024)
@@ -163,27 +152,11 @@ def main():
     s.connect((socket.gethostname(),7734))
     print(f"Connected to {socket.gethostname()} with port 7734")
     peerRfc = {} # The peers who have the RFC. Key: RFC number, Value: the list of peers having the RFC
-
-    #clienthost = '127.0.0.1'
     clienthost = sys.argv[1]
     clientport = 60000 + random.randint(1,1000)
     print(f"Client port {clientport}")
-
-    # RFC directory create ADD request for new peer
     currdir = os.listdir(os.getcwd()+'/RFC')
-    """for rfc in currdir:
-        if rfc.startswith('.'):
-            continue
-        file = rfc.split('-')
-        peerRfc[file[0]] = str(file[1])
-    """
     details = ""
-    """for key,value in peerRfc.items():
-        details += "ADD " + str(key) + " P2P-CI/1.0\n"\
-                "Host: " + str(clienthost)+ "\n"\
-                "Port: " + str(clientport)+ "\n"\
-                "Title: " + str(value) + "\n"
-    """
     sendToServer = [clienthost,clientport,peerRfc,details]
     sendData = pickle.dumps(sendToServer,-1)
     s.send(sendData)
