@@ -23,17 +23,17 @@ def getResponseAdd(number,title,hname,port):
 def getResponseLookup(number,title):
     global rfcMapping, activePeer
     #print("Inside lookup response")
-    print(rfcMapping)
+    #print(rfcMapping)
     response = ""
     if number in rfcMapping:
         hosts, rfcTitle = rfcMapping[number]
-        if len(hosts) > 0:
+        if len(hosts) > 0 and rfcTitle == title:
             response += "P2P-CI/1.0 200 OK"
             for h in hosts:
                 getHostInfo = str(number) + " " + title + " " + str(h) + " " + str(activePeer.get(h))
                 response += "\n" + getHostInfo
-        #else:
-            #response = "No peer has this RFC"
+        else:
+            response = "P2P-CI/1.0 400 Bad Request"
     else:
         response = "P2P-CI/1.0 404 Not Found"
     return response
@@ -97,7 +97,7 @@ def manageClientRequest(clientsocket,address):
             peer,title = rfcMapping.get(key)
             peer.append(hname)
             rfcMapping[key] = (peer,title)
-    print(rfcMapping)
+    #print(rfcMapping)
     while True:
         response2 = clientsocket.recv(1024).decode('utf-8')
         print(response2)
@@ -154,7 +154,7 @@ def manageClientRequest(clientsocket,address):
             msg2 = clientsocket.recv(1024).decode('utf-8')
             #print(msg2)
             msg2List = msg2.split("\n")
-            print(msg2List)
+            #print(msg2List)
             if "GET Request Completed" in str(msg2List[0]):
                 createMapping(rfcNo,rfcTitle,str(msg2List[3][6:]))
             #print(rfcMapping)
